@@ -1,3 +1,5 @@
+// ignore_for_file: use_super_parameters, deprecated_member_use
+
 import 'package:flutter/material.dart';
 import '../core/constants/app_colors.dart';
 import '../core/constants/app_dimensions.dart';

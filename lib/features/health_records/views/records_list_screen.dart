@@ -10,11 +10,12 @@ import '../../../widgets/record_list_tile.dart';
 import '../../../widgets/confirm_dialog.dart';
 import '../viewmodels/health_record_viewmodel.dart';
 import 'add_record_screen.dart' show EditRecordScreen;
-import 'edit_record_screen.dart';
+
 
 /// Records List Screen
 /// Displays all health records with search and filter capabilities
 class RecordsListScreen extends StatefulWidget {
+  // ignore: use_super_parameters
   const RecordsListScreen({Key? key}) : super(key: key);
 
   @override
@@ -140,6 +141,7 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
         horizontal: AppDimensions.screenPadding,
         vertical: AppDimensions.spacingS,
       ),
+      // ignore: deprecated_member_use
       color: AppColors.primary.withOpacity(0.1),
       child: Wrap(
         spacing: AppDimensions.spacingS,

@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:healthmateapp/features/health_records/views/edit_record_screen.dart';
-import 'package:healthmateapp/core/constants/app_colors.dart';
 import '../core/constants/app_strings.dart';
 import 'dashboard/views/dashboard_screen.dart';
-import 'health_records/views/add_record_screen.dart';
 import 'health_records/views/records_list_screen.dart';
 
 /// Main Screen
 /// Container with bottom navigation bar for switching between main features
 class MainScreen extends StatefulWidget {
+  // ignore: use_super_parameters
   const MainScreen({Key? key}) : super(key: key);
 
   @override

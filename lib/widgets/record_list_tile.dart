@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use, use_super_parameters, duplicate_ignore
+
 import 'package:flutter/material.dart';
 import '../core/constants/app_colors.dart';
 import '../core/constants/app_dimensions.dart';
@@ -12,6 +14,7 @@ class RecordListTile extends StatelessWidget {
   final VoidCallback onDelete;
   final bool showDate;
 
+  // ignore: use_super_parameters
   const RecordListTile({
     Key? key,
     required this.record,

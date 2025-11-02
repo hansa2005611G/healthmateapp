@@ -14,6 +14,7 @@ import '../../health_records/views/records_list_screen.dart';
 /// Dashboard Screen
 /// Shows today's health summary with quick stats
 class DashboardScreen extends StatefulWidget {
+  // ignore: use_super_parameters
   const DashboardScreen({Key? key}) : super(key: key);
 
   @override
@@ -177,6 +178,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Text(
                   'Your Health Summary',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        // ignore: deprecated_member_use
                         color: AppColors.textOnPrimary.withOpacity(0.8),
                       ),
                 ),

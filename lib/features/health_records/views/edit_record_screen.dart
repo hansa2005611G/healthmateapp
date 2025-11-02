@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use, use_super_parameters
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
@@ -221,7 +223,7 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
         );
 
         // Navigate back
-        Navigator.pop(context);
+         Navigator.pop(context);
       } else {
         // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
