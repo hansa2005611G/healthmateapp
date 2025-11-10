@@ -9,13 +9,12 @@ import '../../../widgets/empty_state_widget.dart';
 import '../../../widgets/record_list_tile.dart';
 import '../../../widgets/confirm_dialog.dart';
 import '../viewmodels/health_record_viewmodel.dart';
-import 'add_record_screen.dart' show EditRecordScreen;
-
+import 'edit_record_screen.dart';
+import 'add_record_screen.dart';
 
 /// Records List Screen
 /// Displays all health records with search and filter capabilities
 class RecordsListScreen extends StatefulWidget {
-  // ignore: use_super_parameters
   const RecordsListScreen({Key? key}) : super(key: key);
 
   @override
@@ -26,7 +25,6 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
   @override
   void initState() {
     super.initState();
-    // Refresh data when screen loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<HealthRecordViewModel>().refreshData();
     });
@@ -38,13 +36,11 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
       appBar: AppBar(
         title: const Text(AppStrings.recordsListTitle),
         actions: [
-          // Search button
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: _showDatePicker,
             tooltip: AppStrings.searchByDate,
           ),
-          // Refresh button
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
@@ -56,14 +52,12 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
       ),
       body: Consumer<HealthRecordViewModel>(
         builder: (context, viewModel, child) {
-          // Loading state
           if (viewModel.isLoading && !viewModel.hasRecords) {
             return const LoadingIndicator(
               message: AppStrings.loadingRecords,
             );
           }
 
-          // Error state
           if (viewModel.hasError) {
             return Center(
               child: Padding(
@@ -94,7 +88,6 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
             );
           }
 
-          // Empty state
           if (viewModel.displayedRecords.isEmpty) {
             return viewModel.hasActiveFilter
                 ? NoSearchResultsEmptyState(
@@ -103,13 +96,9 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
                 : const NoRecordsEmptyState();
           }
 
-          // Main content
           return Column(
             children: [
-              // Filter chip (if active)
               if (viewModel.hasActiveFilter) _buildFilterChip(viewModel),
-
-              // Records list
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: () => viewModel.refreshData(),
@@ -131,6 +120,20 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
           );
         },
       ),
+      // ADD FLOATING ACTION BUTTON HERE
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AddRecordScreen(),
+            ),
+          );
+        },
+        icon: const Icon(Icons.add),
+        label: const Text('Add Record'),
+        backgroundColor: AppColors.primary,
+      ),
     );
   }
 
@@ -141,7 +144,6 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
         horizontal: AppDimensions.screenPadding,
         vertical: AppDimensions.spacingS,
       ),
-      // ignore: deprecated_member_use
       color: AppColors.primary.withOpacity(0.1),
       child: Wrap(
         spacing: AppDimensions.spacingS,

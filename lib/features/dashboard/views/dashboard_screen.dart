@@ -14,7 +14,6 @@ import '../../health_records/views/records_list_screen.dart';
 /// Dashboard Screen
 /// Shows today's health summary with quick stats
 class DashboardScreen extends StatefulWidget {
-  // ignore: use_super_parameters
   const DashboardScreen({Key? key}) : super(key: key);
 
   @override
@@ -25,7 +24,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    // Load data when screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<HealthRecordViewModel>().refreshData();
     });
@@ -48,14 +46,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       body: Consumer<HealthRecordViewModel>(
         builder: (context, viewModel, child) {
-          // Loading state
           if (viewModel.isLoading && !viewModel.hasRecords) {
             return const LoadingIndicator(
               message: AppStrings.loadingRecords,
             );
           }
 
-          // Error state
           if (viewModel.hasError) {
             return Center(
               child: Padding(
@@ -86,17 +82,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
             );
           }
 
-          // Empty state (no data for today)
+          // Empty state - REMOVED the onAddEntry callback
           if (!viewModel.hasTodayData) {
-            return NoDashboardDataEmptyState(
-              onAddEntry: () {
-                // Navigate to add entry (will be handled by bottom nav)
-                DefaultTabController.of(context).animateTo(1);
-              },
+            return EmptyStateWidget(
+              icon: Icons.calendar_today,
+              message: 'No data for today',
+              subtitle: 'Add your first health entry to see your daily summary',
+              iconColor: AppColors.accent,
             );
           }
 
-          // Main content
           return RefreshIndicator(
             onRefresh: () => viewModel.refreshData(),
             child: SingleChildScrollView(
@@ -105,22 +100,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Date header
                   _buildDateHeader(context),
                   const SizedBox(height: AppDimensions.spacingL),
 
-                  // Section title
                   Text(
                     AppStrings.todaySummary,
                     style: Theme.of(context).textTheme.displayMedium,
                   ),
                   const SizedBox(height: AppDimensions.spacingM),
 
-                  // Metrics grid
                   _buildMetricsGrid(viewModel),
                   const SizedBox(height: AppDimensions.spacingL),
 
-                  // View all button
                   if (viewModel.hasRecords) ...[
                     PrimaryButton(
                       text: AppStrings.viewAllButton,
@@ -138,7 +129,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                   const SizedBox(height: AppDimensions.spacingL),
 
-                  // Quick stats
                   _buildQuickStats(context, viewModel),
                 ],
               ),
@@ -178,7 +168,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Text(
                   'Your Health Summary',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        // ignore: deprecated_member_use
                         color: AppColors.textOnPrimary.withOpacity(0.8),
                       ),
                 ),

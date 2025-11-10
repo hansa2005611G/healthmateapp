@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:healthmateapp/features/health_records/views/edit_record_screen.dart';
-import '../core/constants/app_strings.dart';
 import 'dashboard/views/dashboard_screen.dart';
 import 'health_records/views/records_list_screen.dart';
 
 /// Main Screen
 /// Container with bottom navigation bar for switching between main features
 class MainScreen extends StatefulWidget {
-  // ignore: use_super_parameters
   const MainScreen({Key? key}) : super(key: key);
 
   @override
@@ -17,10 +14,9 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
-  // Screens for each tab
+  // Only 2 screens now: Dashboard and Records
   final List<Widget> _screens = const [
     DashboardScreen(),
-    AddRecordScreen(),
     RecordsListScreen(),
   ];
 
@@ -41,18 +37,13 @@ class _MainScreenState extends State<MainScreen> {
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard),
-            label: AppStrings.navDashboard,
-            tooltip: AppStrings.navDashboard,
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.add_circle),
-            label: AppStrings.navAddEntry,
-            tooltip: AppStrings.navAddEntry,
+            label: 'Dashboard',
+            tooltip: 'Dashboard',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.list),
-            label: AppStrings.navRecords,
-            tooltip: AppStrings.navRecords,
+            label: 'Records',
+            tooltip: 'Records',
           ),
         ],
       ),
