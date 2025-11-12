@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-// ignore: depend_on_referenced_packages
 import 'package:provider/provider.dart';
 import 'app.dart';
 import 'data/database/database_helper.dart';
 import 'features/health_records/viewmodels/health_record_viewmodel.dart';
+import 'core/providers/theme_provider.dart';
+
 /// Main entry point of the application
 void main() async {
   // Ensure Flutter bindings are initialized
@@ -20,11 +21,16 @@ void main() async {
   final dbHelper = DatabaseHelper();
   await dbHelper.database; // This will create tables and insert dummy data
 
-  // Run the app
+  // Run the app with multiple providers
   runApp(
-    // Wrap app with Provider for state management
-    ChangeNotifierProvider(
-      create: (_) => HealthRecordViewModel(),
+    MultiProvider(
+      providers: [
+        // Theme Provider
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        
+        // Health Record ViewModel
+        ChangeNotifierProvider(create: (_) => HealthRecordViewModel()),
+      ],
       child: const App(),
     ),
   );

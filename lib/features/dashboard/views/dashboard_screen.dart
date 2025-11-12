@@ -4,6 +4,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/utils/date_helper.dart';
+import '../../../core/utils/user_preferences.dart';
 import '../../../widgets/health_metric_card.dart';
 import '../../../widgets/loading_indicator.dart';
 import '../../../widgets/empty_state_widget.dart';
@@ -11,8 +12,6 @@ import '../../../widgets/custom_button.dart';
 import '../../health_records/viewmodels/health_record_viewmodel.dart';
 import '../../health_records/views/records_list_screen.dart';
 
-/// Dashboard Screen
-/// Shows today's health summary with quick stats
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
 
@@ -21,11 +20,21 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  String _userName = 'User';
+
   @override
   void initState() {
     super.initState();
+    _loadUserName();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<HealthRecordViewModel>().refreshData();
+    });
+  }
+
+  Future<void> _loadUserName() async {
+    final name = await UserPreferences.getUserName();
+    setState(() {
+      _userName = name;
     });
   }
 
@@ -47,49 +56,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       body: Consumer<HealthRecordViewModel>(
         builder: (context, viewModel, child) {
           if (viewModel.isLoading && !viewModel.hasRecords) {
-            return const LoadingIndicator(
-              message: AppStrings.loadingRecords,
-            );
+            return const LoadingIndicator(message: AppStrings.loadingRecords);
           }
 
           if (viewModel.hasError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(AppDimensions.screenPadding),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: AppDimensions.iconXXL,
-                      color: AppColors.error,
-                    ),
-                    const SizedBox(height: AppDimensions.spacingM),
-                    Text(
-                      viewModel.errorMessage ?? AppStrings.errorGeneric,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                    const SizedBox(height: AppDimensions.spacingL),
-                    PrimaryButton(
-                      text: 'Retry',
-                      onPressed: () => viewModel.refreshData(),
-                      icon: Icons.refresh,
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
-
-          // Empty state - REMOVED the onAddEntry callback
-          if (!viewModel.hasTodayData) {
-            return EmptyStateWidget(
-              icon: Icons.calendar_today,
-              message: 'No data for today',
-              subtitle: 'Add your first health entry to see your daily summary',
-              iconColor: AppColors.accent,
-            );
+            return _buildErrorState(viewModel);
           }
 
           return RefreshIndicator(
@@ -100,36 +71,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildDateHeader(context),
+                  _buildWelcomeHeader(context),
                   const SizedBox(height: AppDimensions.spacingL),
 
-                  Text(
-                    AppStrings.todaySummary,
-                    style: Theme.of(context).textTheme.displayMedium,
-                  ),
-                  const SizedBox(height: AppDimensions.spacingM),
-
-                  _buildMetricsGrid(viewModel),
-                  const SizedBox(height: AppDimensions.spacingL),
-
-                  if (viewModel.hasRecords) ...[
-                    PrimaryButton(
-                      text: AppStrings.viewAllButton,
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const RecordsListScreen(),
-                          ),
-                        );
-                      },
-                      icon: Icons.list,
+                  if (viewModel.hasTodayData) ...[
+                    Text(
+                      AppStrings.todaySummary,
+                      style: Theme.of(context).textTheme.displayMedium,
                     ),
+                    const SizedBox(height: AppDimensions.spacingM),
+                    _buildMetricsGrid(viewModel),
+                    const SizedBox(height: AppDimensions.spacingL),
+                  ] else ...[
+                    _buildNoDataCard(),
+                    const SizedBox(height: AppDimensions.spacingL),
                   ],
 
-                  const SizedBox(height: AppDimensions.spacingL),
+                  if (viewModel.hasRecords) ...[
+                    _buildQuickStats(context, viewModel),
+                    const SizedBox(height: AppDimensions.spacingL),
+                  ],
 
-                  _buildQuickStats(context, viewModel),
+                  _buildHealthTips(context),
                 ],
               ),
             ),
@@ -139,42 +102,99 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildDateHeader(BuildContext context) {
+  Widget _buildWelcomeHeader(BuildContext context) {
+    final hour = DateTime.now().hour;
+    String greeting = 'Good Morning';
+    IconData greetingIcon = Icons.wb_sunny;
+
+    if (hour >= 12 && hour < 17) {
+      greeting = 'Good Afternoon';
+      greetingIcon = Icons.wb_sunny_outlined;
+    } else if (hour >= 17 && hour < 21) {
+      greeting = 'Good Evening';
+      greetingIcon = Icons.nights_stay;
+    } else if (hour >= 21 || hour < 5) {
+      greeting = 'Good Night';
+      greetingIcon = Icons.bedtime;
+    }
+
     return Container(
-      padding: const EdgeInsets.all(AppDimensions.spacingM),
+      padding: const EdgeInsets.all(AppDimensions.spacingL),
       decoration: BoxDecoration(
         gradient: AppColors.primaryGradient,
         borderRadius: BorderRadius.circular(AppDimensions.radiusL),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
-            Icons.calendar_today,
-            color: AppColors.textOnPrimary,
-            size: AppDimensions.iconL,
+          Row(
+            children: [
+              Icon(
+                greetingIcon,
+                color: AppColors.textOnPrimary,
+                size: AppDimensions.iconXL,
+              ),
+              const SizedBox(width: AppDimensions.spacingM),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      greeting,
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            color: AppColors.textOnPrimary,
+                          ),
+                    ),
+                    Text(
+                      _userName,
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            color: AppColors.textOnPrimary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: AppDimensions.spacingM),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  DateHelper.toDayDateString(DateTime.now()),
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppColors.textOnPrimary,
-                        fontWeight: FontWeight.w600,
-                      ),
+          const SizedBox(height: AppDimensions.spacingS),
+          Text(
+            DateHelper.toFullDateString(DateTime.now()),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.textOnPrimary.withOpacity(0.9),
                 ),
-                Text(
-                  'Your Health Summary',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textOnPrimary.withOpacity(0.8),
-                      ),
-                ),
-              ],
-            ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildNoDataCard() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(AppDimensions.cardPadding),
+        child: Column(
+          children: [
+            Icon(
+              Icons.calendar_today,
+              size: AppDimensions.iconXXL,
+              color: AppColors.primary.withOpacity(0.5),
+            ),
+            const SizedBox(height: AppDimensions.spacingM),
+            Text(
+              'No data for today',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: AppDimensions.spacingS),
+            Text(
+              'Start tracking by adding your health metrics',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -204,37 +224,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             Row(
               children: [
-                const Icon(
-                  Icons.insights,
-                  color: AppColors.primary,
-                ),
+                const Icon(Icons.insights, color: AppColors.primary),
                 const SizedBox(width: AppDimensions.spacingS),
-                Text(
-                  'Quick Stats',
-                  style: Theme.of(context).textTheme.displaySmall,
-                ),
+                Text('Quick Stats', style: Theme.of(context).textTheme.titleLarge),
               ],
             ),
             const SizedBox(height: AppDimensions.spacingM),
+            _buildStatRow(context, Icons.check_circle_outline, 'Total Records', '${viewModel.recordCount}'),
+            const Divider(height: AppDimensions.spacingL),
             _buildStatRow(
               context,
-              icon: Icons.check_circle_outline,
-              label: 'Total Records',
-              value: '${viewModel.recordCount}',
+              Icons.trending_up,
+              'Steps Goal',
+              viewModel.todaySteps >= 10000 ? 'Achieved! 🎉' : '${(viewModel.todaySteps / 10000 * 100).toInt()}%',
             ),
             const Divider(height: AppDimensions.spacingL),
             _buildStatRow(
               context,
-              icon: Icons.trending_up,
-              label: 'Steps Goal',
-              value: viewModel.todaySteps >= 10000 ? 'Achieved! 🎉' : '${(viewModel.todaySteps / 10000 * 100).toInt()}%',
-            ),
-            const Divider(height: AppDimensions.spacingL),
-            _buildStatRow(
-              context,
-              icon: Icons.water_drop,
-              label: 'Water Goal',
-              value: viewModel.todayWater >= 2000 ? 'Achieved! 💧' : '${(viewModel.todayWater / 2000 * 100).toInt()}%',
+              Icons.water_drop,
+              'Water Goal',
+              viewModel.todayWater >= 2000 ? 'Achieved! 💧' : '${(viewModel.todayWater / 2000 * 100).toInt()}%',
             ),
           ],
         ),
@@ -242,34 +251,76 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildStatRow(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required String value,
-  }) {
+  Widget _buildHealthTips(BuildContext context) {
+    final tips = [
+      {'icon': Icons.directions_walk, 'tip': 'Take 10,000 steps daily for better cardiovascular health', 'color': AppColors.stepsColor},
+      {'icon': Icons.water_drop, 'tip': 'Drink at least 2 liters of water every day', 'color': AppColors.waterColor},
+      {'icon': Icons.restaurant, 'tip': 'Eat a balanced diet with fruits and vegetables', 'color': AppColors.accent},
+      {'icon': Icons.bedtime, 'tip': 'Get 7-8 hours of quality sleep each night', 'color': AppColors.primary},
+    ];
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(AppDimensions.cardPadding),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.lightbulb, color: AppColors.accent),
+                const SizedBox(width: AppDimensions.spacingS),
+                Text('Health Tips', style: Theme.of(context).textTheme.titleLarge),
+              ],
+            ),
+            const SizedBox(height: AppDimensions.spacingM),
+            ...tips.map((tip) => Padding(
+              padding: const EdgeInsets.only(bottom: AppDimensions.spacingM),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(tip['icon'] as IconData, color: tip['color'] as Color, size: 20),
+                  const SizedBox(width: AppDimensions.spacingM),
+                  Expanded(
+                    child: Text(
+                      tip['tip'] as String,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ),
+                ],
+              ),
+            )).toList(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatRow(BuildContext context, IconData icon, String label, String value) {
     return Row(
       children: [
-        Icon(
-          icon,
-          size: AppDimensions.iconM,
-          color: AppColors.textSecondary,
-        ),
+        Icon(icon, size: AppDimensions.iconM, color: AppColors.textSecondary),
         const SizedBox(width: AppDimensions.spacingM),
-        Expanded(
-          child: Text(
-            label,
-            style: Theme.of(context).textTheme.bodyLarge,
-          ),
-        ),
-        Text(
-          value,
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppColors.primary,
-              ),
-        ),
+        Expanded(child: Text(label, style: Theme.of(context).textTheme.bodyLarge)),
+        Text(value, style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600, color: AppColors.primary)),
       ],
+    );
+  }
+
+  Widget _buildErrorState(HealthRecordViewModel viewModel) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppDimensions.screenPadding),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: AppDimensions.iconXXL, color: AppColors.error),
+            const SizedBox(height: AppDimensions.spacingM),
+            Text(viewModel.errorMessage ?? AppStrings.errorGeneric, textAlign: TextAlign.center),
+            const SizedBox(height: AppDimensions.spacingL),
+            ElevatedButton(onPressed: () => viewModel.refreshData(), child: const Text('Retry')),
+          ],
+        ),
+      ),
     );
   }
 }

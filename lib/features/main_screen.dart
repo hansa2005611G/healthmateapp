@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dashboard/views/dashboard_screen.dart';
 import 'health_records/views/records_list_screen.dart';
+import 'settings/settings_screen.dart';
 
 /// Main Screen
-/// Container with bottom navigation bar for switching between main features
+/// Container with bottom navigation bar (3 tabs: Dashboard, Records, Settings)
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
 
@@ -14,10 +15,11 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
-  // Only 2 screens now: Dashboard and Records
+  // 3 screens: Dashboard, Records, Settings
   final List<Widget> _screens = const [
     DashboardScreen(),
     RecordsListScreen(),
+    SettingsScreen(),
   ];
 
   @override
@@ -44,6 +46,11 @@ class _MainScreenState extends State<MainScreen> {
             icon: Icon(Icons.list),
             label: 'Records',
             tooltip: 'Records',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Settings',
+            tooltip: 'Settings',
           ),
         ],
       ),

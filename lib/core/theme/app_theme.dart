@@ -322,7 +322,6 @@ class AppTheme {
     );
   }
 
-  // ==================== HELPER METHODS ====================
   
   /// Get text style for metric values
   static TextStyle get metricValueStyle => const TextStyle(
@@ -351,4 +350,57 @@ class AppTheme {
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
   );
+
+  static ThemeData get darkTheme {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      colorScheme: ColorScheme.dark(
+        primary: AppColors.primary,
+        onPrimary: AppColors.textOnPrimary,
+        primaryContainer: AppColors.primaryDark,
+        secondary: AppColors.accent,
+        onSecondary: AppColors.textOnPrimary,
+        error: AppColors.error,
+        onError: AppColors.textOnPrimary,
+        surface: const Color(0xFF1E1E1E),
+        onSurface: Colors.white,
+        surfaceContainerHighest: const Color(0xFF121212),
+      ),
+      
+      scaffoldBackgroundColor: const Color(0xFF121212),
+      
+      appBarTheme: const AppBarTheme(
+        elevation: AppDimensions.appBarElevation,
+        centerTitle: true,
+        backgroundColor: Color(0xFF1E1E1E),
+        foregroundColor: Colors.white,
+        iconTheme: IconThemeData(
+          color: Colors.white,
+          size: AppDimensions.iconM,
+        ),
+        titleTextStyle: TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      
+      cardTheme: CardThemeData(
+        elevation: AppDimensions.elevationLow,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDimensions.cardRadius),
+        ),
+        color: const Color(0xFF1E1E1E),
+      ),
+      
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: Color(0xFF1E1E1E),
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: Colors.grey,
+        type: BottomNavigationBarType.fixed,
+        elevation: AppDimensions.elevationMedium,
+      ),
+    );
+  }
 }
