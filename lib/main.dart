@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'app.dart';
 import 'data/database/database_helper.dart';
 import 'features/health_records/viewmodels/health_record_viewmodel.dart';
-import 'core/providers/theme_provider.dart';
+
 
 /// Main entry point of the application
 void main() async {
@@ -25,8 +25,8 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        // Theme Provider
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+       
+       
         
         // Health Record ViewModel
         ChangeNotifierProvider(create: (_) => HealthRecordViewModel()),

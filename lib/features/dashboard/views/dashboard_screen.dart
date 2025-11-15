@@ -7,10 +7,8 @@ import '../../../core/utils/date_helper.dart';
 import '../../../core/utils/user_preferences.dart';
 import '../../../widgets/health_metric_card.dart';
 import '../../../widgets/loading_indicator.dart';
-import '../../../widgets/empty_state_widget.dart';
-import '../../../widgets/custom_button.dart';
 import '../../health_records/viewmodels/health_record_viewmodel.dart';
-import '../../health_records/views/records_list_screen.dart';
+
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -33,9 +31,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _loadUserName() async {
     final name = await UserPreferences.getUserName();
-    setState(() {
-      _userName = name;
-    });
+    if (mounted) {
+      setState(() {
+        _userName = name;
+      });
+    }
   }
 
   @override
@@ -43,6 +43,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(AppStrings.dashboardTitle),
+        automaticallyImplyLeading: false,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -77,7 +78,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   if (viewModel.hasTodayData) ...[
                     Text(
                       AppStrings.todaySummary,
-                      style: Theme.of(context).textTheme.displayMedium,
+                      style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: AppDimensions.spacingM),
                     _buildMetricsGrid(viewModel),
@@ -93,6 +94,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ],
 
                   _buildHealthTips(context),
+                  const SizedBox(height: AppDimensions.spacingXXL), // Extra padding at bottom
                 ],
               ),
             ),
@@ -147,10 +149,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     Text(
                       _userName,
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                             color: AppColors.textOnPrimary,
                             fontWeight: FontWeight.bold,
                           ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -159,7 +162,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           const SizedBox(height: AppDimensions.spacingS),
           Text(
-            DateHelper.toFullDateString(DateTime.now()),
+            DateHelper.toShortDateString(DateTime.now()),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppColors.textOnPrimary.withOpacity(0.9),
                 ),
@@ -172,12 +175,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildNoDataCard() {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(AppDimensions.cardPadding),
+        padding: const EdgeInsets.all(AppDimensions.cardPadding * 1.5),
         child: Column(
           children: [
             Icon(
               Icons.calendar_today,
-              size: AppDimensions.iconXXL,
+              size: 60,
               color: AppColors.primary.withOpacity(0.5),
             ),
             const SizedBox(height: AppDimensions.spacingM),
@@ -200,18 +203,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildMetricsGrid(HealthRecordViewModel viewModel) {
-    return GridView.count(
-      crossAxisCount: AppDimensions.gridCrossAxisCount,
-      crossAxisSpacing: AppDimensions.gridSpacing,
-      mainAxisSpacing: AppDimensions.gridSpacing,
-      childAspectRatio: AppDimensions.gridChildAspectRatio,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      children: [
-        StepsMetricCard(value: viewModel.todaySteps),
-        CaloriesMetricCard(value: viewModel.todayCalories),
-        WaterMetricCard(value: viewModel.todayWater),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Calculate card width to prevent overflow
+        final cardWidth = (constraints.maxWidth - AppDimensions.gridSpacing) / 2;
+        final cardHeight = cardWidth * 0.7; // Adjusted aspect ratio
+
+        return Wrap(
+          spacing: AppDimensions.gridSpacing,
+          runSpacing: AppDimensions.gridSpacing,
+          children: [
+            SizedBox(
+              width: cardWidth,
+              height: cardHeight,
+              child: StepsMetricCard(value: viewModel.todaySteps),
+            ),
+            SizedBox(
+              width: cardWidth,
+              height: cardHeight,
+              child: CaloriesMetricCard(value: viewModel.todayCalories),
+            ),
+            SizedBox(
+              width: cardWidth,
+              height: cardHeight,
+              child: WaterMetricCard(value: viewModel.todayWater),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -224,9 +243,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             Row(
               children: [
-                const Icon(Icons.insights, color: AppColors.primary),
+                const Icon(Icons.insights, color: AppColors.primary, size: 20),
                 const SizedBox(width: AppDimensions.spacingS),
-                Text('Quick Stats', style: Theme.of(context).textTheme.titleLarge),
+                Text('Quick Stats', style: Theme.of(context).textTheme.titleMedium),
               ],
             ),
             const SizedBox(height: AppDimensions.spacingM),
@@ -253,10 +272,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildHealthTips(BuildContext context) {
     final tips = [
-      {'icon': Icons.directions_walk, 'tip': 'Take 10,000 steps daily for better cardiovascular health', 'color': AppColors.stepsColor},
-      {'icon': Icons.water_drop, 'tip': 'Drink at least 2 liters of water every day', 'color': AppColors.waterColor},
-      {'icon': Icons.restaurant, 'tip': 'Eat a balanced diet with fruits and vegetables', 'color': AppColors.accent},
-      {'icon': Icons.bedtime, 'tip': 'Get 7-8 hours of quality sleep each night', 'color': AppColors.primary},
+      {'icon': Icons.directions_walk, 'tip': 'Take 10,000 steps daily', 'color': AppColors.stepsColor},
+      {'icon': Icons.water_drop, 'tip': 'Drink 2 liters of water', 'color': AppColors.waterColor},
+      {'icon': Icons.restaurant, 'tip': 'Eat fruits and vegetables', 'color': AppColors.accent},
+      {'icon': Icons.bedtime, 'tip': 'Get 7-8 hours of sleep', 'color': AppColors.primary},
     ];
 
     return Card(
@@ -267,23 +286,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             Row(
               children: [
-                const Icon(Icons.lightbulb, color: AppColors.accent),
+                const Icon(Icons.lightbulb, color: AppColors.accent, size: 20),
                 const SizedBox(width: AppDimensions.spacingS),
-                Text('Health Tips', style: Theme.of(context).textTheme.titleLarge),
+                Text('Health Tips', style: Theme.of(context).textTheme.titleMedium),
               ],
             ),
             const SizedBox(height: AppDimensions.spacingM),
             ...tips.map((tip) => Padding(
-              padding: const EdgeInsets.only(bottom: AppDimensions.spacingM),
+              padding: const EdgeInsets.only(bottom: AppDimensions.spacingS),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(tip['icon'] as IconData, color: tip['color'] as Color, size: 20),
+                  Icon(tip['icon'] as IconData, color: tip['color'] as Color, size: 18),
                   const SizedBox(width: AppDimensions.spacingM),
                   Expanded(
                     child: Text(
                       tip['tip'] as String,
-                      style: Theme.of(context).textTheme.bodyMedium,
+                      style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ),
                 ],
@@ -298,10 +317,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildStatRow(BuildContext context, IconData icon, String label, String value) {
     return Row(
       children: [
-        Icon(icon, size: AppDimensions.iconM, color: AppColors.textSecondary),
+        Icon(icon, size: 20, color: AppColors.textSecondary),
         const SizedBox(width: AppDimensions.spacingM),
-        Expanded(child: Text(label, style: Theme.of(context).textTheme.bodyLarge)),
-        Text(value, style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600, color: AppColors.primary)),
+        Expanded(child: Text(label, style: Theme.of(context).textTheme.bodyMedium)),
+        Text(
+          value,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.primary,
+              ),
+        ),
       ],
     );
   }
@@ -313,11 +338,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: AppDimensions.iconXXL, color: AppColors.error),
+            Icon(Icons.error_outline, size: 60, color: AppColors.error),
             const SizedBox(height: AppDimensions.spacingM),
-            Text(viewModel.errorMessage ?? AppStrings.errorGeneric, textAlign: TextAlign.center),
+            Text(
+              viewModel.errorMessage ?? AppStrings.errorGeneric,
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: AppDimensions.spacingL),
-            ElevatedButton(onPressed: () => viewModel.refreshData(), child: const Text('Retry')),
+            ElevatedButton(
+              onPressed: () => viewModel.refreshData(),
+              child: const Text('Retry'),
+            ),
           ],
         ),
       ),

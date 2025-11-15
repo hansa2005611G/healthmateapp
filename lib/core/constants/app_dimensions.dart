@@ -147,7 +147,7 @@ class AppDimensions {
   // ==================== CARD SIZES ====================
   
   /// Metric card height
-  static const double metricCardHeight = 120.0;
+  static const double metricCardHeight = 100.0;
   
   /// Metric card width (for grid)
   static const double metricCardWidth = 160.0;
@@ -218,7 +218,7 @@ class AppDimensions {
   static const int gridCrossAxisCount = 2;
   
   /// Grid child aspect ratio
-  static const double gridChildAspectRatio = 1.3;
+  static const double gridChildAspectRatio = 1.5;
 
   // ==================== LIST ====================
   
