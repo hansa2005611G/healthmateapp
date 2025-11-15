@@ -5,10 +5,8 @@ import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/utils/date_helper.dart';
 import '../../../core/utils/user_preferences.dart';
-import '../../../widgets/health_metric_card.dart';
 import '../../../widgets/loading_indicator.dart';
 import '../../health_records/viewmodels/health_record_viewmodel.dart';
-
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -31,11 +29,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _loadUserName() async {
     final name = await UserPreferences.getUserName();
-    if (mounted) {
-      setState(() {
-        _userName = name;
-      });
-    }
+    setState(() {
+      _userName = name;
+    });
   }
 
   @override
@@ -43,7 +39,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(AppStrings.dashboardTitle),
-        automaticallyImplyLeading: false,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -78,10 +73,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   if (viewModel.hasTodayData) ...[
                     Text(
                       AppStrings.todaySummary,
-                      style: Theme.of(context).textTheme.titleLarge,
+                      style: Theme.of(context).textTheme.displayMedium,
                     ),
                     const SizedBox(height: AppDimensions.spacingM),
-                    _buildMetricsGrid(viewModel),
+                    _buildMetricsSummary(viewModel),
                     const SizedBox(height: AppDimensions.spacingL),
                   ] else ...[
                     _buildNoDataCard(),
@@ -94,7 +89,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ],
 
                   _buildHealthTips(context),
-                  const SizedBox(height: AppDimensions.spacingXXL), // Extra padding at bottom
                 ],
               ),
             ),
@@ -149,11 +143,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     Text(
                       _userName,
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                             color: AppColors.textOnPrimary,
                             fontWeight: FontWeight.bold,
                           ),
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -162,7 +155,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           const SizedBox(height: AppDimensions.spacingS),
           Text(
-            DateHelper.toShortDateString(DateTime.now()),
+            DateHelper.toFullDateString(DateTime.now()),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppColors.textOnPrimary.withOpacity(0.9),
                 ),
@@ -175,12 +168,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildNoDataCard() {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(AppDimensions.cardPadding * 1.5),
+        padding: const EdgeInsets.all(AppDimensions.cardPadding),
         child: Column(
           children: [
             Icon(
               Icons.calendar_today,
-              size: 60,
+              size: AppDimensions.iconXXL,
               color: AppColors.primary.withOpacity(0.5),
             ),
             const SizedBox(height: AppDimensions.spacingM),
@@ -202,35 +195,100 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildMetricsGrid(HealthRecordViewModel viewModel) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Calculate card width to prevent overflow
-        final cardWidth = (constraints.maxWidth - AppDimensions.gridSpacing) / 2;
-        final cardHeight = cardWidth * 0.7; // Adjusted aspect ratio
-
-        return Wrap(
-          spacing: AppDimensions.gridSpacing,
-          runSpacing: AppDimensions.gridSpacing,
+  // NEW: Compact metrics summary that won't overflow
+  Widget _buildMetricsSummary(HealthRecordViewModel viewModel) {
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(AppDimensions.cardPadding),
+        child: Column(
           children: [
-            SizedBox(
-              width: cardWidth,
-              height: cardHeight,
-              child: StepsMetricCard(value: viewModel.todaySteps),
+            _buildMetricRow(
+              icon: Icons.directions_walk,
+              color: AppColors.stepsColor,
+              label: 'Steps',
+              value: viewModel.todaySteps.toString(),
+              unit: 'steps',
             ),
-            SizedBox(
-              width: cardWidth,
-              height: cardHeight,
-              child: CaloriesMetricCard(value: viewModel.todayCalories),
+            const Divider(height: 24),
+            _buildMetricRow(
+              icon: Icons.local_fire_department,
+              color: AppColors.caloriesColor,
+              label: 'Calories',
+              value: viewModel.todayCalories.toString(),
+              unit: 'kcal',
             ),
-            SizedBox(
-              width: cardWidth,
-              height: cardHeight,
-              child: WaterMetricCard(value: viewModel.todayWater),
+            const Divider(height: 24),
+            _buildMetricRow(
+              icon: Icons.water_drop,
+              color: AppColors.waterColor,
+              label: 'Water',
+              value: viewModel.todayWater.toString(),
+              unit: 'ml',
             ),
           ],
-        );
-      },
+        ),
+      ),
+    );
+  }
+
+  // NEW: Helper method for metric rows
+  Widget _buildMetricRow({
+    required IconData icon,
+    required Color color,
+    required String label,
+    required String value,
+    required String unit,
+  }) {
+    return Row(
+      children: [
+        // Icon container
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            icon,
+            color: color,
+            size: 28,
+          ),
+        ),
+        const SizedBox(width: 16),
+        // Label
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        ),
+        // Value and unit
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+            Text(
+              unit,
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -243,9 +301,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             Row(
               children: [
-                const Icon(Icons.insights, color: AppColors.primary, size: 20),
+                const Icon(Icons.insights, color: AppColors.primary),
                 const SizedBox(width: AppDimensions.spacingS),
-                Text('Quick Stats', style: Theme.of(context).textTheme.titleMedium),
+                Text('Quick Stats', style: Theme.of(context).textTheme.titleLarge),
               ],
             ),
             const SizedBox(height: AppDimensions.spacingM),
@@ -272,10 +330,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildHealthTips(BuildContext context) {
     final tips = [
-      {'icon': Icons.directions_walk, 'tip': 'Take 10,000 steps daily', 'color': AppColors.stepsColor},
-      {'icon': Icons.water_drop, 'tip': 'Drink 2 liters of water', 'color': AppColors.waterColor},
-      {'icon': Icons.restaurant, 'tip': 'Eat fruits and vegetables', 'color': AppColors.accent},
-      {'icon': Icons.bedtime, 'tip': 'Get 7-8 hours of sleep', 'color': AppColors.primary},
+      {'icon': Icons.directions_walk, 'tip': 'Take 10,000 steps daily for better cardiovascular health', 'color': AppColors.stepsColor},
+      {'icon': Icons.water_drop, 'tip': 'Drink at least 2 liters of water every day', 'color': AppColors.waterColor},
+      {'icon': Icons.restaurant, 'tip': 'Eat a balanced diet with fruits and vegetables', 'color': AppColors.accent},
+      {'icon': Icons.bedtime, 'tip': 'Get 7-8 hours of quality sleep each night', 'color': AppColors.primary},
     ];
 
     return Card(
@@ -286,23 +344,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             Row(
               children: [
-                const Icon(Icons.lightbulb, color: AppColors.accent, size: 20),
+                const Icon(Icons.lightbulb, color: AppColors.accent),
                 const SizedBox(width: AppDimensions.spacingS),
-                Text('Health Tips', style: Theme.of(context).textTheme.titleMedium),
+                Text('Health Tips', style: Theme.of(context).textTheme.titleLarge),
               ],
             ),
             const SizedBox(height: AppDimensions.spacingM),
             ...tips.map((tip) => Padding(
-              padding: const EdgeInsets.only(bottom: AppDimensions.spacingS),
+              padding: const EdgeInsets.only(bottom: AppDimensions.spacingM),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(tip['icon'] as IconData, color: tip['color'] as Color, size: 18),
+                  Icon(tip['icon'] as IconData, color: tip['color'] as Color, size: 20),
                   const SizedBox(width: AppDimensions.spacingM),
                   Expanded(
                     child: Text(
                       tip['tip'] as String,
-                      style: Theme.of(context).textTheme.bodySmall,
+                      style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
                 ],
@@ -317,16 +375,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildStatRow(BuildContext context, IconData icon, String label, String value) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: AppColors.textSecondary),
+        Icon(icon, size: AppDimensions.iconM, color: AppColors.textSecondary),
         const SizedBox(width: AppDimensions.spacingM),
-        Expanded(child: Text(label, style: Theme.of(context).textTheme.bodyMedium)),
-        Text(
-          value,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppColors.primary,
-              ),
-        ),
+        Expanded(child: Text(label, style: Theme.of(context).textTheme.bodyLarge)),
+        Text(value, style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600, color: AppColors.primary)),
       ],
     );
   }
@@ -338,17 +390,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 60, color: AppColors.error),
+            Icon(Icons.error_outline, size: AppDimensions.iconXXL, color: AppColors.error),
             const SizedBox(height: AppDimensions.spacingM),
-            Text(
-              viewModel.errorMessage ?? AppStrings.errorGeneric,
-              textAlign: TextAlign.center,
-            ),
+            Text(viewModel.errorMessage ?? AppStrings.errorGeneric, textAlign: TextAlign.center),
             const SizedBox(height: AppDimensions.spacingL),
-            ElevatedButton(
-              onPressed: () => viewModel.refreshData(),
-              child: const Text('Retry'),
-            ),
+            ElevatedButton(onPressed: () => viewModel.refreshData(), child: const Text('Retry')),
           ],
         ),
       ),
