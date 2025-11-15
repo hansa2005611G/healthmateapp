@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_dimensions.dart';
 import '../../core/utils/user_preferences.dart';
-import '../../core/providers/theme_provider.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -30,8 +28,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = context.watch<ThemeProvider>();
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
@@ -70,31 +66,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ],
               ),
-            ),
-          ),
-          const SizedBox(height: AppDimensions.spacingL),
-
-          // Appearance Section
-          Text(
-            'Appearance',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-          ),
-          const SizedBox(height: AppDimensions.spacingS),
-          Card(
-            child: SwitchListTile(
-              title: const Text('Dark Mode'),
-              subtitle: const Text('Switch between light and dark theme'),
-              secondary: Icon(
-                themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode,
-                color: AppColors.primary,
-              ),
-              value: themeProvider.isDarkMode,
-              onChanged: (value) {
-                themeProvider.toggleTheme();
-              },
             ),
           ),
           const SizedBox(height: AppDimensions.spacingL),
