@@ -6,6 +6,7 @@ import 'settings/settings_screen.dart';
 /// Main Screen
 /// Container with bottom navigation bar (3 tabs: Dashboard, Records, Settings)
 class MainScreen extends StatefulWidget {
+  // ignore: use_super_parameters
   const MainScreen({Key? key}) : super(key: key);
 
   @override

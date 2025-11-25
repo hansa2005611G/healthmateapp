@@ -7,28 +7,22 @@ import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/utils/validators.dart';
 import '../../../core/utils/date_helper.dart';
+import '../../../data/models/health_record_model.dart';
 import '../../../widgets/date_picker_field.dart';
 import '../../../widgets/health_input_field.dart';
 import '../../../widgets/custom_button.dart';
-import '../../../widgets/loading_indicator.dart';
 import '../viewmodels/health_record_viewmodel.dart';
 
-
-/// Edit Record Screen
-/// Form for editing an existing health record
-class EditRecordScreen extends StatefulWidget {
-  final int recordId;
-
-  const EditRecordScreen({
-    Key? key,
-    required this.recordId,
-  }) : super(key: key);
+/// Add Record Screen
+/// Form for adding a new health record
+class AddRecordScreen extends StatefulWidget {
+  const AddRecordScreen({Key? key}) : super(key: key);
 
   @override
-  State<EditRecordScreen> createState() => _EditRecordScreenState();
+  State<AddRecordScreen> createState() => _AddRecordScreenState();
 }
 
-class _EditRecordScreenState extends State<EditRecordScreen> {
+class _AddRecordScreenState extends State<AddRecordScreen> {
   final _formKey = GlobalKey<FormState>();
   
   // Controllers
@@ -42,17 +36,10 @@ class _EditRecordScreenState extends State<EditRecordScreen> {
   final _waterFocusNode = FocusNode();
   
   // Selected date
-  DateTime? _selectedDate;
+  DateTime _selectedDate = DateTime.now();
   
   // Loading state
   bool _isSubmitting = false;
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadRecord();
-  }
 
   @override
   void dispose() {
@@ -65,47 +52,11 @@ class _EditRecordScreenState extends State<EditRecordScreen> {
     super.dispose();
   }
 
-  Future<void> _loadRecord() async {
-    final viewModel = Provider.of<HealthRecordViewModel>(context, listen: false);
-    final record = viewModel.getRecordById(widget.recordId);
-
-    if (record == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Record not found'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-        Navigator.pop(context);
-      }
-      return;
-    }
-
-    // Populate form fields
-    setState(() {
-      _stepsController.text = record.steps.toString();
-      _caloriesController.text = record.calories.toString();
-      _waterController.text = record.water.toString();
-      _selectedDate = record.dateTime;
-      _isLoading = false;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    if (_isLoading || _selectedDate == null) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text(AppStrings.editRecordTitle),
-        ),
-        body: const LoadingIndicator(message: 'Loading record...'),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text(AppStrings.editRecordTitle),
+        title: const Text(AppStrings.addRecordTitle),
       ),
       body: Form(
         key: _formKey,
@@ -121,7 +72,7 @@ class _EditRecordScreenState extends State<EditRecordScreen> {
               // Date picker
               DatePickerField(
                 label: AppStrings.dateLabel,
-                selectedDate: _selectedDate!,
+                selectedDate: _selectedDate,
                 onDateChanged: (date) {
                   setState(() {
                     _selectedDate = date;
@@ -166,9 +117,9 @@ class _EditRecordScreenState extends State<EditRecordScreen> {
               ),
               const SizedBox(height: AppDimensions.spacingXL),
 
-              // Update button
+              // Save button
               PrimaryButton(
-                text: AppStrings.updateButton,
+                text: AppStrings.saveButton,
                 onPressed: _isSubmitting ? null : _submitForm,
                 isLoading: _isSubmitting,
                 icon: Icons.save,
@@ -182,23 +133,23 @@ class _EditRecordScreenState extends State<EditRecordScreen> {
 
   Widget _buildInfoCard() {
     return Card(
-      color: AppColors.accent.withOpacity(0.1),
+      color: AppColors.primary.withOpacity(0.1),
       elevation: 0,
       child: Padding(
         padding: const EdgeInsets.all(AppDimensions.cardPadding),
         child: Row(
           children: [
             const Icon(
-              Icons.edit_note,
-              color: AppColors.accent,
+              Icons.info_outline,
+              color: AppColors.primary,
               size: AppDimensions.iconL,
             ),
             const SizedBox(width: AppDimensions.spacingM),
             Expanded(
               child: Text(
-                'Update your health metrics for this day.',
+                'Enter your daily health metrics to track your progress.',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.accent,
+                      color: AppColors.primary,
                     ),
               ),
             ),
@@ -221,55 +172,33 @@ class _EditRecordScreenState extends State<EditRecordScreen> {
       _isSubmitting = true;
     });
 
-    final viewModel = Provider.of<HealthRecordViewModel>(context, listen: false);
-    final originalRecord = viewModel.getRecordById(widget.recordId);
-
-    if (originalRecord == null) {
-      if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Record not found'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-        Navigator.pop(context);
-      }
-      return;
-    }
+    final viewModel = context.read<HealthRecordViewModel>();
 
     // Parse values
     final steps = int.parse(_stepsController.text.trim());
     final calories = int.parse(_caloriesController.text.trim());
     final water = int.parse(_waterController.text.trim());
-    final dateString = DateHelper.toIsoString(_selectedDate!);
+    final dateString = DateHelper.toIsoString(_selectedDate);
 
-    // Check if date changed and if new date already has a record
-    if (dateString != originalRecord.date) {
-      final canUseDate = await viewModel.canAddRecordForDate(
-        dateString,
-        excludeId: widget.recordId,
-      );
+    // Check if record already exists for this date
+    final canAdd = await viewModel.canAddRecordForDate(dateString);
+    
+    if (!canAdd && mounted) {
+      setState(() {
+        _isSubmitting = false;
+      });
       
-      if (!canUseDate && mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(AppStrings.duplicateRecordError),
-            backgroundColor: AppColors.error,
-          ),
-        );
-        return;
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(AppStrings.duplicateRecordError),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
     }
 
-    // Update record
-    final updatedRecord = originalRecord.update(
+    // Create record
+    final record = HealthRecord.create(
       date: dateString,
       steps: steps,
       calories: calories,
@@ -277,7 +206,7 @@ class _EditRecordScreenState extends State<EditRecordScreen> {
     );
 
     // Save to database
-    final success = await viewModel.updateRecord(updatedRecord);
+    final success = await viewModel.addRecord(record);
 
     if (mounted) {
       setState(() {
@@ -288,19 +217,19 @@ class _EditRecordScreenState extends State<EditRecordScreen> {
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text(AppStrings.recordUpdated),
+            content: Text(AppStrings.recordAdded),
             backgroundColor: AppColors.success,
           ),
         );
 
         // Navigate back
-        Navigator.pop(context);
+         Navigator.pop(context);
       } else {
         // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              viewModel.errorMessage ?? AppStrings.errorUpdatingRecord,
+              viewModel.errorMessage ?? AppStrings.errorSavingRecord,
             ),
             backgroundColor: AppColors.error,
           ),

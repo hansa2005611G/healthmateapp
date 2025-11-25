@@ -9,7 +9,7 @@ import '../../../widgets/loading_indicator.dart';
 import '../../health_records/viewmodels/health_record_viewmodel.dart';
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({Key? key}) : super(key: key);
+  const DashboardScreen({super.key});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -39,15 +39,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(AppStrings.dashboardTitle),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              context.read<HealthRecordViewModel>().refreshData();
-            },
-            tooltip: 'Refresh',
-          ),
-        ],
+        
       ),
       body: Consumer<HealthRecordViewModel>(
         builder: (context, viewModel, child) {
@@ -365,7 +357,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ],
               ),
-            )).toList(),
+            )),
           ],
         ),
       ),

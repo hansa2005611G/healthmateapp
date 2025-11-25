@@ -7,6 +7,7 @@ import 'features/welcome/welcome_back_screen.dart';
 /// App Widget
 /// Root widget that configures the MaterialApp
 class App extends StatelessWidget {
+  // ignore: use_super_parameters
   const App({Key? key}) : super(key: key);
 
   @override

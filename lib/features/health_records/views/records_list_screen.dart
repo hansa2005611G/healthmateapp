@@ -9,12 +9,13 @@ import '../../../widgets/empty_state_widget.dart';
 import '../../../widgets/record_list_tile.dart';
 import '../../../widgets/confirm_dialog.dart';
 import '../viewmodels/health_record_viewmodel.dart';
-import 'edit_record_screen.dart';
 import 'add_record_screen.dart';
+import 'edit_record_screen.dart';
 
 /// Records List Screen
 /// Displays all health records with search and filter capabilities
 class RecordsListScreen extends StatefulWidget {
+  // ignore: use_super_parameters
   const RecordsListScreen({Key? key}) : super(key: key);
 
   @override
@@ -41,13 +42,7 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
             onPressed: _showDatePicker,
             tooltip: AppStrings.searchByDate,
           ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              context.read<HealthRecordViewModel>().refreshData();
-            },
-            tooltip: 'Refresh',
-          ),
+          
         ],
       ),
       body: Consumer<HealthRecordViewModel>(

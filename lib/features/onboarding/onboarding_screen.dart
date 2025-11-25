@@ -5,6 +5,7 @@ import '../../core/utils/user_preferences.dart';
 import '../welcome/welcome_back_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
+  // ignore: use_super_parameters
   const OnboardingScreen({Key? key}) : super(key: key);
 
   @override

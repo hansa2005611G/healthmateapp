@@ -97,7 +97,7 @@ class DatabaseHelper {
         '${date.month.toString().padLeft(2, '0')}-'
         '${date.day.toString().padLeft(2, '0')}';
   }
-
+    //Insert data
   Future<int> insertRecord(HealthRecord record) async {
     final db = await database;
     return await db.insert(tableHealthRecords, record.toMap());
@@ -152,7 +152,7 @@ class DatabaseHelper {
     }
     return {'steps': totalSteps, 'calories': totalCalories, 'water': totalWater};
   }
-
+   //Update data
   Future<int> updateRecord(HealthRecord record) async {
     if (record.id == null) throw ArgumentError('Record ID cannot be null');
     final db = await database;
@@ -163,7 +163,7 @@ class DatabaseHelper {
       whereArgs: [record.id],
     );
   }
-
+   // Delete data
   Future<int> deleteRecord(int id) async {
     final db = await database;
     return await db.delete(

@@ -5,6 +5,7 @@ import '../../core/utils/user_preferences.dart';
 import '../main_screen.dart';
 
 class WelcomeBackScreen extends StatelessWidget {
+  // ignore: use_super_parameters
   const WelcomeBackScreen({Key? key}) : super(key: key);
 
   @override
