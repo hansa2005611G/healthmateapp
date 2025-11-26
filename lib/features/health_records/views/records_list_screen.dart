@@ -229,7 +229,7 @@ class _RecordsListScreenState extends State<RecordsListScreen> {
       ),
     );
   }
-
+//Delete Confirmation Dialog
   Future<void> _confirmDelete(HealthRecordViewModel viewModel, int recordId) async {
     final confirmed = await DeleteConfirmDialog.show(context: context);
 

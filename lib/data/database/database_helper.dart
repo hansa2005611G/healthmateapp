@@ -123,7 +123,7 @@ class DatabaseHelper {
     if (maps.isEmpty) return null;
     return HealthRecord.fromMap(maps.first);
   }
-
+  //Read by Date
   Future<List<HealthRecord>> getRecordsByDate(String date) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
